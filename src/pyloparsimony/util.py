@@ -7,10 +7,9 @@ from pylotree import Tree
 def matrix_from_chars(
         chars,
         model=None,
-        weigths=None,
+        weights=None,
         symmetric=False,
-        default=1,
-        missing="Ø"
+        default=1
         ):
     if model == "fitch":
         return [[1 if i != j else 0 for i in range(len(chars))] for j in range(len(chars))]
@@ -18,9 +17,10 @@ def matrix_from_chars(
     if weights:
         matrix = [[0 for char in chars] for char in chars]
         if symmetric:
-            for (i, charA), (j, charB) in combinations(chars, r=2):
-                matrix[i][j] = matrix[j][i] = weights.get((charA, charB),
-                        default)
+            for (i, charA), (j, charB) in combinations(enumerate(chars), r=2):
+                matrix[i][j] = matrix[j][i] = weights.get(
+                        (charA, charB),
+                        weights.get((charB, charA), default))
         else:
             for i, charA in enumerate(chars):
                 for j, charB in enumerate(chars):
