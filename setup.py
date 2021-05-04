@@ -11,10 +11,10 @@ setup(
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     author='Johann-Mattis List',
     author_email='mattis_list@eva.mpg.de',
@@ -25,7 +25,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     platforms='any',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=["pylotree"],
     extras_require={
         'dev': ['black', 'wheel', 'twine'],
@@ -35,8 +35,4 @@ setup(
             'coverage>=4.2',
         ],
     },
-    entry_points={
-        'console_scripts': []
-    },
 )
-

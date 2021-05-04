@@ -1,44 +1,37 @@
 """
 Utility functions for parsimony calculations.
 """
-from itertools import combinations
+import itertools
+
 from pylotree import Tree
 
-def matrix_from_chars(
-        chars,
-        model=None,
-        weights=None,
-        symmetric=False,
-        default=1
-        ):
-    if model == "fitch":
-        return [[1 if i != j else 0 for i in range(len(chars))] for j in range(len(chars))]
+__all__ = ['matrix_from_chars', 'print_scenario']
 
-    if weights:
-        matrix = [[0 for char in chars] for char in chars]
-        if symmetric:
-            for (i, charA), (j, charB) in combinations(enumerate(chars), r=2):
-                matrix[i][j] = matrix[j][i] = weights.get(
-                        (charA, charB),
-                        weights.get((charB, charA), default))
-        else:
-            for i, charA in enumerate(chars):
-                for j, charB in enumerate(chars):
-                    if i != j:
-                        matrix[i][j] = weights.get((charA, charB), default)
-        return matrix
+
+def matrix_from_chars(chars, weights=None, symmetric=False, default=1):
+    """
+    With the default argument values, this returns a matrix according to the "fitch" model.
+    """
+    weights = weights or {}
+    matrix = [[0 for _ in chars] for _ in chars]
+    if symmetric:
+        for (i, charA), (j, charB) in itertools.combinations(enumerate(chars), r=2):
+            matrix[i][j] = matrix[j][i] = weights.get(
+                    (charA, charB),
+                    weights.get((charB, charA), default))
+    else:
+        for (i, charA), (j, charB) in itertools.permutations(enumerate(chars), 2):
+            matrix[i][j] = weights.get((charA, charB), default)
+    return matrix
 
 
 def print_scenario(scenario, tree):
-    
-    if isinstance(tree, Tree):
-        tree = Tree(tree.newick)
-    else:
-        tree = Tree(tree)
-        
-    for edge, char in sorted(scenario, key=lambda x: len(x[0]), reverse=True):
-        tree[edge].name = edge+'/'+char
+    tree = Tree(tree)
+    scenario = dict(scenario)
 
-    print(tree.ascii_art)
-            
+    def relabel(n):
+        if n.name in scenario:
+            n.name = '{}/{}'.format(n.name, scenario[n.name])
 
+    tree.root.visit(relabel)
+    print(tree.root.ascii_art())
