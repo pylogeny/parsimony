@@ -1,1 +1,2 @@
-pylotree
+# development environment: install in development mode
+-e .[dev,test]
