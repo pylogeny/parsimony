@@ -43,3 +43,15 @@ def test_parsimony_up(capsys):
 )
 def test_matrix_from_chars(chars, weights, kw, cond):
     assert cond(matrix_from_chars(chars, weights=weights, **kw))
+
+
+@pytest.mark.parametrize(
+    'tree,pattern,root_states',
+    [
+        ('(A,B,C)', dict(A='a', B='a', C='b'), {'a'}),
+        ('(A,B,C)', dict(A='a', B='b', C='c'), {'a', 'b', 'c'}),
+        ('((A,B),C)', dict(A='a', B='a', C='b'), {'a', 'b'}),
+    ]
+)
+def test_parsimony2(tree, pattern, root_states):
+    assert set(dict(s)['Root'] for s in parsimony(tree, pattern)) == root_states
