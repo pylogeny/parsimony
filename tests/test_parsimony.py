@@ -15,10 +15,18 @@ def test_parsimony():
 
 def test_parsimony_analysis():
     ex2 = EXAMPLES["e2"]
+    ex3 = EXAMPLES["e3"]
     assert parsimony_analysis(
             Tree(ex2["tree"]),
             ex2["patterns"]
             ) == 3
+    assert parsimony_analysis(
+            Tree(ex3["tree"]),
+            ex3["patterns"],
+            characters=ex3["characters"],
+            matrices=ex3["matrices"]
+            ) == 3
+
 
 
 def test_parsimony_up(capsys):

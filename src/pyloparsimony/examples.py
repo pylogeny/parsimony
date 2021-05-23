@@ -10,7 +10,7 @@ EXAMPLES = {
         "taxa": ["A", "B", "C", "D", "E"],
         "tree": "(((A,B)Edge1,(C,D)Edge2)Edge3,E)Root;",
         "matrix": matrix_from_chars(["a", "b", "c"])
-    },
+        },
     "e2": {
         "characters": ["a", "b", "c"],
         "patterns": {
@@ -32,5 +32,39 @@ EXAMPLES = {
         "taxa": ["A", "B", "C", "D", "E"],
         "tree": "(((A,B)Edge1,(C,D)Edge2)Edge3,E)Root;",
         "matrix": matrix_from_chars(["a", "b", "c"])
+        },
+    "e3": {
+        "patterns": {
+            "1": {
+                "A": "b", 
+                "B": "c", 
+                "C": "a", 
+                "D": "a", 
+                "E": "b"
+                },
+            "2": {
+                "A": ["B", "A"], 
+                "B": "B", 
+                "C": "A", 
+                "D": "A", 
+                "E": "B"
+                }
+            },
+        "taxa": ["A", "B", "C", "D", "E"],
+        "tree": "(((A,B)Edge1,(C,D)Edge2)Edge3,E)Root;",
+        "characters": {
+            "1": ["a", "b", "c"],
+            "2": ["A", "B", "C"],
+            },
+        "matrices": {
+            "1": [
+                [0, 1, 1], 
+                [1, 0, 1], 
+                [1, 1, 0]], 
+            "2": [
+                [0, 1, 1],
+                [1, 0, 1],
+                [1, 1, 0]]
+            }
         }
-}
+    }
