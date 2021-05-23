@@ -79,3 +79,32 @@ def down(tree, characters, matrix, weights):
                         new_scenario += [(child.name, char)]
                     queue += [(new_nodes, new_scenario)]
     return output
+
+
+def parsimony_analysis(tree, patterns, characters=None, matrices=None):
+    """
+    Carry out a parsimony analysis for a given tree and a number of patterns.
+    """
+    characters = characters or {}
+    matrices = matrices or {}
+    scenarios, weights, root_weights = {}, {}, {}
+    for key, pattern in patterns.items():
+        characterlist, matrix = characters.get(key), matrices.get(key)
+        if not characterlist:
+            chars = []
+            for sublist in pattern.values():
+                chars += sublist
+            characterlist = sorted(set(chars))
+        if not matrix:
+            matrix = matrix_from_chars(characterlist)
+        weight = up(
+                tree,
+                characterlist,
+                matrix,
+                pattern
+                )
+        root_weights[key] = min(weight[tree.root.name].values())
+    return sum(root_weights.values())
+
+
+        

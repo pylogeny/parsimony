@@ -1,9 +1,9 @@
 import pytest
 
 from pyloparsimony.examples import EXAMPLES
-from pyloparsimony.parsimony import parsimony
+from pyloparsimony.parsimony import parsimony, parsimony_analysis
 from pyloparsimony.util import print_scenario, matrix_from_chars
-
+from pylotree import Tree
 
 def test_parsimony():
     ex1 = EXAMPLES["e1"]
@@ -11,6 +11,14 @@ def test_parsimony():
         ex1['tree'],
         dict(zip(ex1['taxa'], ex1['patterns'])),
     )
+
+
+def test_parsimony_analysis():
+    ex2 = EXAMPLES["e2"]
+    assert parsimony_analysis(
+            Tree(ex2["tree"]),
+            ex2["patterns"]
+            ) == 3
 
 
 def test_parsimony_up(capsys):
