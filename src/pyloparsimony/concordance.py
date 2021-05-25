@@ -45,11 +45,11 @@ def is_concordant(partitionA, partitionB):
     return 0
 
 
-def select_leaves(partition):
+def select_leaves(partition, max_leaves=2):
     out = []
     for part in partition:
         out += [random.choice(part)]
-    return out
+    return out[:max_leaves]
 
 
 def select_chars(chars):
@@ -58,7 +58,8 @@ def select_chars(chars):
     return chars
 
 
-def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø"):
+def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø",
+        max_leaves=2):
     """
     Rooted site concordance factor.
 
@@ -92,8 +93,8 @@ def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø"):
                 score, rscore, visited = [], [], set()
                 for i in range(iterate):
                     choiceA, choiceB = (
-                            select_leaves(partA),
-                            select_leaves(partB)
+                            select_leaves(partA, max_leaves=max_leaves),
+                            select_leaves(partB, max_leaves=max_leaves)
                             )
                     if tuple(choiceA+choiceB) not in visited and len(choiceA+choiceB) >= 4:
                         visited.add(tuple(choiceA+choiceB))
