@@ -4,7 +4,6 @@ Concordance factor computation.
 import statistics
 import random
 from tqdm import tqdm as progressbar
-random.seed(1234)
 
 def rooted_partition(tree, node):
     """
