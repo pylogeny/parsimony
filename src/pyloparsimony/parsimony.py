@@ -9,14 +9,24 @@ from .util import matrix_from_chars
 
 
 def parsimony(tree, pattern, characters=None, matrix=None):
+    """
+    Calculate the most parsimonious evolutionary scenario for pattern and tree. 
+    """
     tree = Tree(tree)
     # Take the set of all observed states as default for all possible characters:
-    characters = characters or sorted(set(pattern.values()))
+    if not characters:
+        characters = []
+        for pt in pattern.values():
+            if isinstance(pt, (list, tuple)):
+                characters += pt
+            else:
+                characters += [pt]
+        characters = sorted(set(characters))
+
     # Use a Fitch-model matrix as default:
     matrix = matrix or matrix_from_chars(characters)
 
     assert set(pattern.keys()).issubset(tree.root.get_leaf_names())
-    assert set(pattern.values()).issubset(characters)
 
     return down(tree, characters, matrix, up(tree, characters, matrix, pattern))
 
