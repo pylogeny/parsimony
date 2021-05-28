@@ -4,6 +4,7 @@ Concordance factor computation.
 import statistics
 import random
 from tqdm import tqdm as progressbar
+from functools import reduce
 
 def rooted_partition(tree, node):
     """
@@ -40,7 +41,7 @@ def is_decisive(partitionA, partitionB):
 
 
 def is_concordant(partitionA, partitionB):
-    if len(set(partitionA)) == 1 and partitionA[0] not in partitionB and len(set(partitionB)) == 1:
+    if len(set(partitionA)) == 1 and partitionA[0] not in partitionB:
         return 1
     return 0
 
@@ -56,6 +57,13 @@ def select_chars(chars):
     if isinstance(chars, (list, tuple)):
         return random.choice(chars)
     return chars
+
+
+def randomly_concordant(chars):
+    if len(set(chars)) == 3:
+        return 1/6
+    elif len(set(chars)) == 2:
+        return 1/3
 
 
 def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø",
@@ -84,13 +92,13 @@ def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø",
        * "concordance_decisive_sites" gives the concordance factors for all
          sites that were decisive
     """
-    nodes = {node.name: {"sites": [], "rscores": [], "decisive": [], "patterns": [], "trials": []} for node in tree.preorder[1:] if
+    nodes = {node.name: {"sites": [], "chars": [], "rscores": [], "gammas": [], "decisive": [], "patterns": [], "trials": []} for node in tree.preorder[1:] if
             node.descendants}
     for node in progressbar(tree.preorder[1:], desc="computing concordance"):
         if node.descendants:
             partA, partB = rooted_partition(tree, node.name)
             for pid, pattern in patterns.items():
-                score, rscore, visited = [], [], set()
+                score, rscore, gammas, visited, chars = [], [], [], set(), []
                 for i in range(iterate):
                     choiceA, choiceB = (
                             select_leaves(partA, max_leaves=max_leaves),
@@ -104,16 +112,42 @@ def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø",
                                 )
                         if not missing in charsA+charsB:
                             if is_decisive(charsA, charsB):
-                                score += [is_concordant(charsA, charsB)]
-                                rscore += [is_random_concordant(charsA,
-                                    charsB)]
+                                a = is_concordant(charsA, charsB)
+                                e = is_random_concordant(charsA, charsB)
+                                if a == 1 and e == 0:
+                                    gammas += [3]
+                                elif a == 0 and e == 1:
+                                    gammas += [2]
+                                elif a == e == 1:
+                                    gammas += [1]
+                                elif a == e == 0:
+                                    gammas += [0]
+                                score += [a]
+                                tmprs = []
+                                for j in range(10):
+                                    tmprs += [is_random_concordant(charsA,
+                                        charsB)]
+                                rscore += [randomly_concordant(charsA+charsB)]
+                                chars += [(charsA, charsB, a, e,
+                                    randomly_concordant(charsA+charsB),
+                                    statistics.mean(tmprs))]
                 if score:
+                    nodes[node.name]["chars"] += [chars]
+                    try:
+                        nodes[node.name]["gammas"] += [
+                                (gammas.count(3)-gammas.count(2))/
+                                (gammas.count(3)+gammas.count(2))]
+                    except ZeroDivisionError:
+                        nodes[node.name]["gammas"] += [0]
                     nodes[node.name]["sites"] += [statistics.mean(score)]
                     nodes[node.name]["decisive"] += [len(score)]
                     nodes[node.name]["patterns"] += [pid]
                     nodes[node.name]["trials"] += [len(visited)]
                     nodes[node.name]["rscores"] += [statistics.mean(rscore)]
+                    #[reduce(lambda x, y: x*y, rscore)] #[statistics.mean(rscore)]
                 else:
+                    nodes[node.name]["chars"] += [()]
+                    nodes[node.name]["gammas"] += [0]
                     nodes[node.name]["sites"] += [0]
                     nodes[node.name]["decisive"] += [0]
                     nodes[node.name]["patterns"] += [pid]
@@ -125,6 +159,7 @@ def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø",
                 nodes[node]["rscores"])
         decisive = [n for n, d in zip(nodes[node]["sites"], nodes[node]["decisive"]) if d]
         rdecisive = [n for n, d in zip(nodes[node]["rscores"], nodes[node]["decisive"]) if d]
+        gammadecisive = [n for n, d in zip(nodes[node]["gammas"], nodes[node]["decisive"]) if d]
         if decisive:
             nodes[node]["concordance_decisive_sites"] = statistics.mean(decisive)
             nodes[node]["random_concordance_decisive_sites"] = statistics.mean(rdecisive)
@@ -134,8 +169,10 @@ def rooted_site_concordance(tree, patterns, iterate=20, missing="Ø",
                                 "random_concordance_decisive_sites"]
             except ZeroDivisionError:
                 nodes[node]["corrected_concordance"] = 0
+            nodes[node]["gamma_summary"] = statistics.mean(gammadecisive)
 
         else:
+            nodes[node]["gamma_summary"] = 0
             nodes[node]["concordance_decisive_sites"] = 0
             nodes[node]["random_concordance_decisive_sites"] = 0
             nodes[node]["corrected_concordance"] = 0
