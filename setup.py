@@ -26,7 +26,7 @@ setup(
     zip_safe=False,
     platforms='any',
     python_requires='>=3.6',
-    install_requires=["pylotree"],
+    install_requires=["pylotree", "pylostatistics", "pylodata", "tqdm"],
     extras_require={
         'dev': ['black', 'wheel', 'twine'],
         'test': [

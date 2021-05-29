@@ -35,3 +35,7 @@ def print_scenario(scenario, tree):
 
     tree.root.visit(relabel)
     print(tree.root.ascii_art())
+
+
+
+
