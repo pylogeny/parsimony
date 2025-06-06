@@ -22,10 +22,13 @@ need to be strict bipartitions that split the quartets into two. Alternatively,
 they could also be what we call weakly concordant, and only separate the main
 node being investigated during each step. 
 """
+
 import statistics
 import random
 from tqdm import tqdm as progressbar
 from pylostatistics.correlations import spearmanr, pointbiserialr
+from pyloparsimony.util import pointbiserialr
+
 
 def rooted_partition(tree, node):
     """
@@ -120,14 +123,14 @@ def randomly_concordant(chars):
         return 1/3
 
 
-def is_random_concordant(charsA, charsB):
-    """
-    Function checks if a shuffled version of the partitions is concordant.
-    """
-    chars = charsA + charsB
-    random.shuffle(chars)
-    charsAn, charsBn = chars[:len(charsA)], chars[len(charsA):]
-    return is_concordant(charsAn, charsBn)
+#def is_random_concordant(charsA, charsB):
+#    """
+#    Function checks if a shuffled version of the partitions is concordant.
+#    """
+#    chars = charsA + charsB
+#    random.shuffle(chars)
+#    charsAn, charsBn = chars[:len(charsA)], chars[len(charsA):]
+#    return is_concordant(charsAn, charsBn)
 
 
 
@@ -139,7 +142,7 @@ def rooted_site_concordance(
         max_leaves=2, 
         iterate_correlation=100, 
         correlation=pointbiserialr,
-        p=0.05):
+        ):
     """
     Rooted site concordance factor.
 
@@ -198,32 +201,25 @@ def rooted_site_concordance(
                             if is_decisive(charsA, charsB):
                                 a = is_concordant(charsA, charsB)
                                 attested += [a]
-                                expected += [randomly_concordant(charsA+charsB)]
+                                expected += [randomly_concordant(charsA + charsB)]
                                 chars += [(charsA, charsB, a,
                                     expected[-1])]
                 if attested:
                     nodes[node.name]["chars"] += [chars]
-                    nodes[node.name]["attested"] += [statistics.mean(attested)]
+                    nodes[node.name]["attested"] += [sum(attested)]
                     nodes[node.name]["decisive"] += [len(attested)]
                     nodes[node.name]["patterns"] += [pid]
                     nodes[node.name]["trials"] += [len(visited)]
-                    nodes[node.name]["expected"] += [statistics.mean(expected)]
-                else:
-                    nodes[node.name]["chars"] += [()]
-                    nodes[node.name]["attested"] += [0]
-                    nodes[node.name]["decisive"] += [0]
-                    nodes[node.name]["patterns"] += [pid]
-                    nodes[node.name]["trials"] += [len(visited)]
-                    nodes[node.name]["expected"] += [0]
+                    nodes[node.name]["expected"] += [sum(expected)]
     for node in progressbar(nodes, desc="checking significance"):
-        decisive_a = [n for n, d in zip(nodes[node]["attested"], nodes[node]["decisive"]) if d]
-        decisive_e = [n for n, d in zip(nodes[node]["expected"], nodes[node]["decisive"]) if d]
+        decisive_a = [n / d for n, d in zip(nodes[node]["attested"], nodes[node]["decisive"]) if d]
+        decisive_e = [n / d for n, d in zip(nodes[node]["expected"], nodes[node]["decisive"]) if d]
         if decisive_a:
             sites = len(nodes[node]["attested"])
             
             # compute the correlation to test the significance
-            lstA = decisive_a+decisive_e
-            lstB = [1 for x in decisive_a]+[0 for x in decisive_e]
+            lstA = decisive_a + decisive_e
+            lstB = [1 for x in decisive_a] + [0 for x in decisive_e]
             try:
                 r, p = correlation(lstA, lstB, iterate=iterate_correlation)
             except ZeroDivisionError:
@@ -231,9 +227,8 @@ def rooted_site_concordance(
                 print(lstA, lstB)
             c_len = len([x for x, y in zip(decisive_a, decisive_e) if x >= y])
             d_len = len([x for x, y in zip(decisive_a, decisive_e) if x < y])
-            nodes[node]["oddsratio"] = (
-                    statistics.mean(decisive_a)/statistics.mean(decisive_e)-1)/(
-                            statistics.mean(decisive_a)/statistics.mean(decisive_e)+1)
+            nodes[node]["oddsratio"] = \
+                    statistics.mean(decisive_a) / statistics.mean(decisive_e)
             nodes[node]["concordance"] = statistics.mean(decisive_a)
             nodes[node]["concordance_expected"] = statistics.mean(decisive_e)
             nodes[node]["r"] = r
